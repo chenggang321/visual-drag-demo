@@ -1,11 +1,21 @@
 <template>
     <div class="contextmenu" v-show="menuShow" :style="{ top: menuTop + 'px', left: menuLeft + 'px' }">
-        <ul>
-            <li @click="deleteComponent">删除</li>
-            <li @click="topComponent">置顶</li>
-            <li @click="bottomComponent">置底</li>
-            <li @click="upComponent">上移</li>
-            <li @click="downComponent">下移</li>
+        <ul @mouseup="handleMouseUp">
+            <template v-if="curComponent">
+                <template v-if="!curComponent.isLock">
+                    <li @click="copy">复制</li>
+                    <li @click="paste">粘贴</li>
+                    <li @click="cut">剪切</li>
+                    <li @click="deleteComponent">删除</li>
+                    <li @click="lock">锁定</li>
+                    <li @click="topComponent">置顶</li>
+                    <li @click="bottomComponent">置底</li>
+                    <li @click="upComponent">上移</li>
+                    <li @click="downComponent">下移</li>
+                </template>
+                <li v-else @click="unlock">解锁</li>
+            </template>
+            <li v-else @click="paste">粘贴</li>
         </ul>
     </div>
 </template>
@@ -14,12 +24,44 @@
 import { mapState } from 'vuex'
 
 export default {
+    data() {
+        return {
+            copyData: null,
+        }
+    },
     computed: mapState([
         'menuTop',
         'menuLeft',
         'menuShow',
+        'curComponent',
     ]),
     methods: {
+        lock() {
+            this.$store.commit('lock')
+        },
+
+        unlock() {
+            this.$store.commit('unlock')
+        },
+
+        // 点击菜单时不取消当前组件的选中状态
+        handleMouseUp() {
+            this.$store.commit('setClickComponentStatus', true)
+        },
+
+        cut() {
+            this.$store.commit('cut')
+        },
+
+        copy() {
+            this.$store.commit('copy')
+        },
+
+        paste() {
+            this.$store.commit('paste', true)
+            this.$store.commit('recordSnapshot')
+        },
+
         deleteComponent() {
             this.$store.commit('deleteComponent')
             this.$store.commit('recordSnapshot')
